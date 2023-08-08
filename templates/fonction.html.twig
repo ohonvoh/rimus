@@ -1,0 +1,338 @@
+{% extends 'base.html.twig' %}
+{% block css %}
+<!-- DataTables -->
+<link rel="stylesheet"
+	href="{{ URL }}plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+<link rel="stylesheet"
+	href="{{ URL }}plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+<link rel="stylesheet"
+	href="{{ URL }}plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+<!-- SweetAlert2 -->
+<link rel="stylesheet"
+	href="{{ URL }}plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css">
+<!-- Toastr -->
+<link rel="stylesheet" href="{{ URL }}plugins/toastr/toastr.min.css">
+{% endblock %}
+{% block title %}
+Gestion des fonctions
+{% endblock %}
+{% block path %}
+Fonction
+{% endblock %}
+{% block content %}
+<div class="row">
+	<div class="col-lg-7 col-12">
+		<div class="card card-info">
+			<div class="card-header">
+				<h3 class="card-title">Liste des fonctions</h3>
+			</div>
+			<!-- /.card-header -->
+			<div class="card-body">
+				<table id="example1" class="table table-bordered table-striped">
+					<thead>
+						<tr>
+							<th style="width: 40px;">Code</th>
+							<th>Libellé</th>
+							<th style="width: 110px;"><center>Action</center></th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for item in users %}
+						<tr>
+							<td>
+							    {{ item.code }}
+							</td>
+							<td>{{ item.libelle }}</td>
+							<td>
+								<center>
+									<button type="button" class="btn btn-xs bg-info"
+										data-toggle="modal" data-target="#modal-edit"
+										data-code="{{ item.code }}" data-libelle="{{ item.libelle }}"
+										 style="margin-left: 4px;">
+										<i class="nav-icon fas fa-edit" title="Modifier"></i>
+									</button>
+									<button type="button" class="btn btn-xs bg-danger"
+										data-toggle="modal" data-target="#modal-delete"
+										data-code="{{ item.code }}" data-libelle="{{ item.libelle }}" style="margin-left: 4px;">
+										<i class="nav-icon fas fa-trash" title="Supprimer"></i>
+									</button>
+								</center>
+							</td>
+						</tr>
+						{% endfor %}
+					</tfoot>
+				</table>
+			</div>
+			<!-- /.card-body -->
+		</div>
+		<!-- /.card -->
+	</div>
+	<div class="col-lg-5 col-6">
+		<!-- Horizontal Form -->
+		<div class="card card-info">
+			<div class="card-header">
+				<h3 class="card-title">Ajout d'une fonction</h3>
+			</div>
+			<!-- /.card-header -->
+			<!-- form start -->
+			<form class="form-horizontal" method="post" id="addUser">
+				<div class="card-body">
+					{% if response.showMessage %}
+					{% if response.status == 100 %}
+					<div class="alert alert-success alert-dismissible">
+						<button type="button" class="close" data-dismiss="alert"
+							aria-hidden="true">&times;</button>
+						<h5>
+							<i class="icon fas fa-check"></i>
+							{{ response.message }}
+						</h5>
+					</div>
+					{% endif %}
+					{% if response.status == -1 %}
+					<div class="alert alert-warning alert-dismissible">
+						<button type="button" class="close" data-dismiss="alert"
+							aria-hidden="true">&times;</button>
+						<h5>
+							<i class="icon fas fa-exclamation-triangle"></i>
+							{{ response.message }}
+						</h5>
+					</div>
+					{% endif %}
+					{% endif %}
+					<div class="form-group row">
+						<label for="code" class="col-sm-2 col-form-label">Code</label>
+						<div class="col-sm-10 errorArea">
+							<input type="code" class="form-control" id="code" name="code"
+								placeholder="Code"
+								value={{ fonctionController.newFonction.code }}>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="alpha3" class="col-sm-2 col-form-label">Libellé</label>
+						<div class="col-sm-10 errorArea">
+							<input type="text" class="form-control" id="libelle" name="libelle"
+								placeholder="Libellé"
+								value={{ fonctionController.newFonction.libelle }}>
+						</div>
+					</div>
+				</div>
+				<!-- /.card-body -->
+				<div class="card-footer">
+					<button type="submit" class="btn btn-default float-right"
+						style="margin-left: 10px;">Annuler</button>
+					<button type="submit" name="submit"
+						class="btn btn-info float-right">Valider</button>
+				</div>
+				<!-- /.card-footer -->
+			</form>
+		</div>
+		<!-- /.card -->
+	</div>
+</div>
+
+
+<div class="modal fade" id="modal-delete">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Confirmation</h4>
+				<button type="button" class="close" data-dismiss="modal"
+					aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<form class="form-horizontal" method="post" id="deleteUser">
+				<div class="modal-body">
+					<p class="modal-body-label">Êtes vous sûr de vouloir supprimer
+						la fonction ?</p>
+					<input type="hidden" id="codeDelete" name="codeDelete" />
+				</div>
+				<div class="modal-footer">
+					<button type="submit" name="submitDelete" class="btn btn-primary">Oui</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Non</button>
+				</div>
+			</form>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>
+<div class="modal fade" id="modal-edit">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Modification</h4>
+				<button type="button" class="close" data-dismiss="modal"
+					aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<form class="form-horizontal" method="post" id="updateUser">
+				<div class="modal-body">
+					<input type="hidden" id="updatecode" name="updatecode" />
+					<div class="form-group">
+						<label for="editFonctionCode" class="col-form-label">Code
+							:</label> 
+							<input type="text" class="form-control"
+							id="editFonctionCode" name="editFonctionCode" disabled />
+					</div>
+					<div class="form-group">
+						<label for="updatelibelle" class="col-form-label">Libellé</label> <input
+							type="text" class="form-control" id="updatelibelle" name="updatelibelle" />
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="submit" name="submitEdit" class="btn btn-primary">Valider</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
+				</div>
+			</form>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>
+
+{% endblock %}
+
+{% block js %}
+<!-- DataTables  & Plugins -->
+<script src="{{ URL }}plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="{{ URL }}plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+<script
+	src="{{ URL }}plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+<script
+	src="{{ URL }}plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+<script src="{{ URL }}plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+<script src="{{ URL }}plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+<script src="{{ URL }}plugins/jszip/jszip.min.js"></script>
+<script src="{{ URL }}plugins/pdfmake/pdfmake.min.js"></script>
+<script src="{{ URL }}plugins/pdfmake/vfs_fonts.js"></script>
+<script src="{{ URL }}plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+<script src="{{ URL }}plugins/datatables-buttons/js/buttons.print.min.js"></script>
+<script src="{{ URL }}plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+<script src="{{ URL }}plugins/jquery-validation/jquery.validate.min.js"></script>
+<script src="{{ URL }}plugins/jquery-validation/additional-methods.min.js"></script>
+<!-- AdminLTE App -->
+<script src="{{ URL }}dist/js/adminlte.js"></script>
+<!-- AdminLTE for demo purposes
+<script src="{{ URL }}dist/js/demo.js"></script> -->
+<script>
+  $(function () {
+    $("#example1").DataTable({
+      "responsive": true, "lengthChange": false, "autoWidth": false,
+      "buttons": ["copy", "csv", "excel", "pdf", "print"]
+    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+   /*$('#example2').DataTable({
+      "paging": true,
+      "lengthChange": false,
+      "searching": false,
+      "ordering": true,
+      "info": true,
+      "autoWidth": false,
+      "responsive": true,
+    });*/
+
+    $('#addUser').validate({
+    rules: {
+      code: {
+        required: true
+      },
+      libelle: {
+        required: true,
+        length: 3
+      }
+    },
+    messages: {
+      code: {
+        required: "Ce champ est obligatoire"
+      },
+      libelle: {
+        required: "Ce champ est obligatoire"
+      }
+    },
+    errorElement: 'span',
+    errorPlacement: function (error, element) {
+      error.addClass('invalid-feedback');
+      element.closest('.errorArea').append(error);
+    },
+    highlight: function (element, errorClass, validClass) {
+      $(element).addClass('is-invalid');
+    },
+    unhighlight: function (element, errorClass, validClass) {
+      $(element).removeClass('is-invalid');
+    }
+  });
+
+  });
+  	
+  	$('#modal-delete').on('show.bs.modal', function (event) {
+  		var button = $(event.relatedTarget); // Button that triggered the modal
+  		var nomFR = button.data('libelle'); // Extract info from data-* attributes
+  		var recipient = button.data('code'); // Extract info from data-* attributes
+    	var modal = $(this);
+      	modal.find('.modal-body-label').text("Êtes vous sûr de vouloir supprimer la fonction : " + nomFR +"?");
+      	modal.find('.modal-body input').val(recipient);
+	});
+	
+	$('#modal-edit').on('show.bs.modal', function (event) {
+  		var button = $(event.relatedTarget); // Button that triggered the modal
+  		var valcode = button.data('code'); // Extract info from data-* attributes
+  		var vallibelle = button.data('libelle'); // Extract info from data-* attributes
+  		console.log(valcode);
+    	var modal = $(this);
+      	modal.find('.modal-body #updatecode').val(valcode);
+      	modal.find('.modal-body #editFonctionCode').val(valcode);
+      	modal.find('.modal-body #updatelibelle').val(vallibelle);
+      	
+      	$('#modal-edit').validate({
+            rules: {
+              libelle: {
+                required: true
+              }
+            },
+            messages: {
+              libelle : {
+                required: "Ce champ est obligatoire"
+              }
+            },
+            errorElement: 'span',
+            errorPlacement: function (error, element) {
+              error.addClass('invalid-feedback');
+              element.closest('.errorInitPasswordArea').append(error);
+            },
+            highlight: function (element, errorClass, validClass) {
+              $(element).addClass('is-invalid');
+            },
+            unhighlight: function (element, errorClass, validClass) {
+              $(element).removeClass('is-invalid');
+            }
+          });
+          
+	});
+	
+{% if response.status == 1 %}
+   $(function() {
+    var Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000
+    });
+   
+  }); 
+  toastr.info('{{ response.message }}');
+{% endif %}
+{% if response.status == -1 %}
+   $(function() {
+    var Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000
+    });
+   
+  }); 
+  toastr.error('{{ response.message }}');
+{% endif %}
+</script>
+{% endblock %}

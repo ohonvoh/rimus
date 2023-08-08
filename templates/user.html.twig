@@ -1,0 +1,556 @@
+{% extends 'base.html.twig' %}
+{% block css %}
+<!-- DataTables -->
+<link rel="stylesheet"
+	href="{{ URL }}plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+<link rel="stylesheet"
+	href="{{ URL }}plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+<link rel="stylesheet"
+	href="{{ URL }}plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+<!-- SweetAlert2 -->
+<link rel="stylesheet"
+	href="{{ URL }}plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css">
+<!-- Toastr -->
+<link rel="stylesheet" href="{{ URL }}plugins/toastr/toastr.min.css">
+{% endblock %}
+{% block title %}
+Gestion des utilisateurs
+{% endblock %}
+{% block path %}
+Utilisateurs
+{% endblock %}
+{% block content %}
+<div class="row">
+	<div class="col-lg-7 col-12">
+		<div class="card card-info">
+			<div class="card-header">
+				<h3 class="card-title">Liste des utilisateurs</h3>
+			</div>
+			<!-- /.card-header -->
+			<div class="card-body">
+				<table id="example1" class="table table-bordered table-striped">
+					<thead>
+						<tr>
+							<th>Email</th>
+							<th>Nom et prénoms</th>
+							<th>Type</th>
+							<th style="width: 110px;"><center>Action</center></th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for item in users %}
+						<tr>
+							<td>{% if item.locked == true %}<i
+								class="nav-icon far fa-circle text-danger"
+								style="margin-right: 1px;"></i> {% endif %} {% if item.locked == false %}<i
+								class="nav-icon far fa-circle text-info"
+								style="margin-right: 1px;"></i> {% endif %} {{ item.email }}</td>
+							<td>{{ item.nom }} {{ item.prenoms }}</td>
+							<td>{{ item.levelLabel }}</td>
+							<td>
+								<center>
+									<button type="button" class="btn btn-xs bg-info"
+										data-toggle="modal" data-target="#modal-edit"
+										data-email="{{ item.email }}" data-nom="{{ item.nom }}"
+										data-prenoms="{{ item.prenoms }}"
+										data-level="{{ item.level }}" style="margin-left: 4px;">
+										<i class="nav-icon fas fa-edit" title="Modifier"></i>
+									</button>
+									{% if item.locked == false %}
+									<button type="button" class="btn btn-xs bg-warning"
+										data-toggle="modal" data-target="#modal-lock"
+										data-email="{{ item.email }}" style="margin-left: 4px;">
+										<i class="nav-icon fas fa-lock" title="Verrouiller"></i>
+									</button>
+									{% endif %}
+									{% if item.locked == true %}
+									<button type="button" class="btn btn-xs bg-success"
+										data-toggle="modal" data-target="#modal-unlock"
+										data-email="{{ item.email }}" style="margin-left: 4px;">
+										<i class="nav-icon fas fa-lock-open" title="Déverouiller"></i>
+									</button>
+									{% endif %}
+									<button type="button" class="btn btn-xs bg-secondary"
+										data-toggle="modal" data-target="#modal-initPassword"
+										data-email="{{ item.email }}" style="margin-left: 4px;">
+										<i class="nav-icon fas fa-key"
+											title="Réinitialiser le mot de passe"></i>
+									</button>
+									<button type="button" class="btn btn-xs bg-danger"
+										data-toggle="modal" data-target="#modal-delete"
+										data-email="{{ item.email }}" style="margin-left: 4px;">
+										<i class="nav-icon fas fa-trash" title="Supprimer"></i>
+									</button>
+								</center>
+							</td>
+						</tr>
+						{% endfor %}
+					</tfoot>
+				</table>
+			</div>
+			<!-- /.card-body -->
+		</div>
+		<!-- /.card -->
+	</div>
+	<div class="col-lg-5 col-6">
+		<!-- Horizontal Form -->
+		<div class="card card-info">
+			<div class="card-header">
+				<h3 class="card-title">Ajout d'un utilisateur</h3>
+			</div>
+			<!-- /.card-header -->
+			<!-- form start -->
+			<form class="form-horizontal" method="post" id="addUser">
+				<div class="card-body">
+					{% if response.showMessage %}
+					{% if response.status == 100 %}
+					<div class="alert alert-success alert-dismissible">
+						<button type="button" class="close" data-dismiss="alert"
+							aria-hidden="true">&times;</button>
+						<h5>
+							<i class="icon fas fa-check"></i>
+							{{ response.message }}
+						</h5>
+					</div>
+					{% endif %}
+					{% if response.status == -1 %}
+					<div class="alert alert-warning alert-dismissible">
+						<button type="button" class="close" data-dismiss="alert"
+							aria-hidden="true">&times;</button>
+						<h5>
+							<i class="icon fas fa-exclamation-triangle"></i>
+							{{ response.message }}
+						</h5>
+					</div>
+					{% endif %}
+					{% endif %}
+					<div class="form-group row">
+						<label for="email" class="col-sm-2 col-form-label">Email</label>
+						<div class="col-sm-10 errorArea">
+							<input type="email" class="form-control" id="email" name="email"
+								placeholder="Email"
+								value={{ utilisateurController.newUtilisateur.email }}>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="nom" class="col-sm-2 col-form-label">Nom</label>
+						<div class="col-sm-10 errorArea">
+							<input type="text" class="form-control" id="nom" name="nom"
+								placeholder="Nom"
+								value={{ utilisateurController.newUtilisateur.nom }}>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="prenoms" class="col-sm-2 col-form-label">Prénoms</label>
+						<div class="col-sm-10 errorArea">
+							<input type="text" class="form-control" id="prenoms"
+								name="prenoms" placeholder="Prénoms"
+								value={{ utilisateurController.newUtilisateur.prenoms }}>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="level" class="col-sm-2 col-form-label">Type</label>
+						<div class="col-sm-10 errorArea">
+							<select class="form-control" id="level" name="level"
+								value={{ utilisateurController.newUtilisateur.level }}>
+								<option value="0">Normal</option>
+								<option value="1">Administrateur</option>
+								<option value="2">Super Administrateur</option>
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="password" class="col-sm-2 col-form-label">Password</label>
+						<div class="col-sm-10 errorArea">
+							<input type="password" class="form-control" id="password"
+								name="password" placeholder="Password"
+								value="{{ utilisateurController.newUtilisateur.password }}">
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="passwordConfirm" class="col-sm-2 col-form-label">Confirmer</label>
+						<div class="col-sm-10 errorArea">
+							<input type="password" class="form-control" id="passwordConfirm"
+								name="passwordConfirm"
+								placeholder="Confirmation du mot de passe"
+								value="{{ utilisateurController.newUtilisateur.passwordConfirm }}">
+						</div>
+					</div>
+				</div>
+				<!-- /.card-body -->
+				<div class="card-footer">
+					<button type="submit" class="btn btn-default float-right"
+						style="margin-left: 10px;">Annuler</button>
+					<button type="submit" name="submit"
+						class="btn btn-info float-right">Valider</button>
+				</div>
+				<!-- /.card-footer -->
+			</form>
+		</div>
+		<!-- /.card -->
+	</div>
+</div>
+
+
+<div class="modal fade" id="modal-delete">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Confirmation</h4>
+				<button type="button" class="close" data-dismiss="modal"
+					aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<form class="form-horizontal" method="post" id="deleteUser">
+				<div class="modal-body">
+					<p class="modal-body-label">Êtes vous sûr de vouloir supprimer
+						l'utilisateur ?</p>
+					<input type="hidden" id="emailDelete" name="emailDelete" />
+				</div>
+				<div class="modal-footer">
+					<button type="submit" name="submitDelete" class="btn btn-primary">Oui</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Non</button>
+				</div>
+			</form>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>
+<div class="modal fade" id="modal-lock">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Verrouillage d'un utilisateur</h4>
+				<button type="button" class="close" data-dismiss="modal"
+					aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<form class="form-horizontal" method="post" id="lockUser">
+				<div class="modal-body">
+					<p class="modal-body-label">Êtes vous sûr de vouloir
+						verrouiller l'utilisateur ?</p>
+					<input type="hidden" id="emailLock" name="emailLock" />
+				</div>
+				<div class="modal-footer">
+					<button type="submit" name="submitLock" class="btn btn-primary">Oui</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Non</button>
+				</div>
+			</form>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>
+<div class="modal fade" id="modal-unlock">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Verrouillage d'un utilisateur</h4>
+				<button type="button" class="close" data-dismiss="modal"
+					aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<form class="form-horizontal" method="post" id="unlockUser">
+				<div class="modal-body">
+					<p class="modal-body-label">Êtes vous sûr de vouloir
+						déverrouiller l'utilisateur ?</p>
+					<input type="hidden" id="emailUnLock" name="emailUnLock" />
+				</div>
+				<div class="modal-footer">
+					<button type="submit" name="submitUnLock" class="btn btn-primary">Oui</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Non</button>
+				</div>
+			</form>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>
+<div class="modal fade" id="modal-edit">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Modification</h4>
+				<button type="button" class="close" data-dismiss="modal"
+					aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<form class="form-horizontal" method="post" id="updateUser">
+				<div class="modal-body">
+					<input type="hidden" id="updateUser-email" name="updateUser-email" />
+					<div class="form-group">
+						<label for="updateUser-nom" class="col-form-label">Nom:</label> <input
+							type="text" class="form-control" id="updateUser-nom"
+							name="updateUser-nom" />
+					</div>
+					<div class="form-group">
+						<label for="updateUser-prenoms" class="col-form-label">Prénoms:</label>
+						<input type="text" class="form-control" id="updateUser-prenoms"
+							name="updateUser-prenoms">
+					</div>
+					<div class="form-group">
+						<label for="updateUser-type" class="col-form-label">Type:</label>
+						<select class="form-control" id="updateUser-type"
+							name="updateUser-type">
+							<option value="0">Normal</option>
+							<option value="1">Administrateur</option>
+							<option value="2">Super Administrateur</option>
+						</select>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="submit" name="submitEdit" class="btn btn-primary">Valider</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
+				</div>
+			</form>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>
+
+<div class="modal fade" id="modal-initPassword">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Réinitialisation de mot de passe</h4>
+				<button type="button" class="close" data-dismiss="modal"
+					aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<form class="form-horizontal" method="post" id="initPassword">
+				<div class="modal-body">
+					<div class="form-group">
+						<input type="text" class="initPassword-email form-control"
+							id="initPasswordEmail" name="initPasswordEmail" hidden />
+						<label for="initPassword-email" class="col-form-label">Email
+							:</label> <input type="text" class="initPassword-email form-control"
+							id="initPasswordEmailDisabled" name="initPasswordEmailDisabled" disabled />
+					</div>
+					<div class="form-group errorInitPasswordArea">
+						<label for="initPassword-Password" class="col-form-label">Mot
+							de passe par défaut :</label> 
+							<input type="password" class="form-control"
+							id="initPasswordPassword" name="initPasswordPassword" />
+					</div>
+					<div class="form-group errorInitPasswordArea">
+						<label for="initPassword-Password" class="col-form-label">Confirmer
+							:</label> <input type="password" class="form-control"
+							id="initPasswordcPassword" name="initPasswordcPassword">
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="submit" name="submitInitPassword"
+						class="btn btn-primary">Valider</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
+				</div>
+			</form>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>
+
+{% endblock %}
+
+{% block js %}
+<!-- DataTables  & Plugins -->
+<script src="{{ URL }}plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="{{ URL }}plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+<script
+	src="{{ URL }}plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+<script
+	src="{{ URL }}plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+<script src="{{ URL }}plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+<script src="{{ URL }}plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+<script src="{{ URL }}plugins/jszip/jszip.min.js"></script>
+<script src="{{ URL }}plugins/pdfmake/pdfmake.min.js"></script>
+<script src="{{ URL }}plugins/pdfmake/vfs_fonts.js"></script>
+<script src="{{ URL }}plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+<script src="{{ URL }}plugins/datatables-buttons/js/buttons.print.min.js"></script>
+<script src="{{ URL }}plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+<script src="{{ URL }}plugins/jquery-validation/jquery.validate.min.js"></script>
+<script src="{{ URL }}plugins/jquery-validation/additional-methods.min.js"></script>
+<!-- AdminLTE App -->
+<script src="{{ URL }}dist/js/adminlte.js"></script>
+<!-- AdminLTE for demo purposes
+<script src="{{ URL }}dist/js/demo.js"></script> -->
+<script>
+  $(function () {
+    $("#example1").DataTable({
+      "responsive": true, "lengthChange": false, "autoWidth": false,
+      "buttons": ["copy", "csv", "excel", "pdf", "print"]
+    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+   /*$('#example2').DataTable({
+      "paging": true,
+      "lengthChange": false,
+      "searching": false,
+      "ordering": true,
+      "info": true,
+      "autoWidth": false,
+      "responsive": true,
+    });*/
+
+    $('#addUser').validate({
+    rules: {
+      email: {
+        required: true,
+        email: true,
+      },
+      password: {
+        required: true,
+        minlength: 6
+      },
+      passwordConfirm: {
+        required: true,
+        minlength: 6
+      },
+      nom: {
+        required: true
+      },
+      prenoms: {
+        required: true
+      },
+    },
+    messages: {
+      email: {
+        required: "Ce champ est obligatoire",
+        email: "Renseignez une adresse mail valide"
+      },
+      password: {
+        required: "Ce champ est obligatoire",
+        minlength: "Le mot de passe doit contenir au moins 6 caracrères"
+      },
+      passwordConfirm: {
+        required: "Ce champ est obligatoire",
+        minlength: "Le mot de passe doit contenir au moins 6 caracrères"
+      },
+      nom: "Ce champ est obligatoire",
+      prenoms: "Ce champ est obligatoire"
+    },
+    errorElement: 'span',
+    errorPlacement: function (error, element) {
+      error.addClass('invalid-feedback');
+      element.closest('.errorArea').append(error);
+    },
+    highlight: function (element, errorClass, validClass) {
+      $(element).addClass('is-invalid');
+    },
+    unhighlight: function (element, errorClass, validClass) {
+      $(element).removeClass('is-invalid');
+    }
+  });
+
+  });
+  	
+  	$('#modal-delete').on('show.bs.modal', function (event) {
+  		var button = $(event.relatedTarget); // Button that triggered the modal
+  		var recipient = button.data('email'); // Extract info from data-* attributes
+    	var modal = $(this);
+      	modal.find('.modal-body-label').text("Êtes vous sûr de vouloir supprimer " + recipient +"?");
+      	modal.find('.modal-body input').val(recipient);
+	});
+	
+	$('#modal-edit').on('show.bs.modal', function (event) {
+  		var button = $(event.relatedTarget); // Button that triggered the modal
+  		var email = button.data('email'); // Extract info from data-* attributes
+  		var nom = button.data('nom'); // Extract info from data-* attributes
+  		var prenoms = button.data('prenoms'); // Extract info from data-* attributes
+  		var level = button.data('level'); // Extract info from data-* attributes
+  		console.log(level);
+    	var modal = $(this);
+      	modal.find('.modal-body #updateUser-email').val(email);
+      	modal.find('.modal-body #updateUser-nom').val(nom);
+      	modal.find('.modal-body #updateUser-prenoms').val(prenoms);
+      	modal.find('.modal-body #updateUser-type').val(level);
+	});
+	$('#modal-lock').on('show.bs.modal', function (event) {
+  		var button = $(event.relatedTarget); // Button that triggered the modal
+  		var recipient = button.data('email'); // Extract info from data-* attributes
+    	var modal = $(this);
+      	modal.find('.modal-body-label').text("Êtes vous sûr de vouloir verrouiller " + recipient +"?");
+      	modal.find('.modal-body input').val(recipient);
+	});
+	$('#modal-unlock').on('show.bs.modal', function (event) {
+  		var button = $(event.relatedTarget); // Button that triggered the modal
+  		var recipient = button.data('email'); // Extract info from data-* attributes
+    	var modal = $(this);
+      	modal.find('.modal-body-label').text("Êtes vous sûr de vouloir déverrouiller " + recipient +"?");
+      	modal.find('.modal-body input').val(recipient);
+	});
+	$('#modal-initPassword').on('show.bs.modal', function (event) {
+  		var button = $(event.relatedTarget); // Button that triggered the modal
+  		var recipient = button.data('email'); // Extract info from data-* attributes
+    	var modal = $(this);
+      	modal.find('.modal-body .initPassword-email').val(recipient);
+      	
+      	$('#initPassword').validate({
+            rules: {
+              initPasswordPassword: {
+                required: true,
+                minlength: 6
+              },
+              initPasswordcPassword: {
+                required: true,
+                minlength: 6,
+                equalTo: "#initPasswordPassword"
+              },
+            },
+            messages: {
+              initPasswordPassword: {
+                required: "Ce champ est obligatoire",
+                minlength: "Le mot de passe doit contenir au moins 6 caracrères"
+              },
+              initPasswordcPassword: {
+                required: "Ce champ est obligatoire",
+                minlength: "Le mot de passe doit contenir au moins 6 caracrères",
+                equalTo: "Les mots doivent être identiques"
+              }
+            },
+            errorElement: 'span',
+            errorPlacement: function (error, element) {
+              error.addClass('invalid-feedback');
+              element.closest('.errorInitPasswordArea').append(error);
+            },
+            highlight: function (element, errorClass, validClass) {
+              $(element).addClass('is-invalid');
+            },
+            unhighlight: function (element, errorClass, validClass) {
+              $(element).removeClass('is-invalid');
+            }
+          });
+      	
+	});
+	
+{% if response.status == 1 %}
+   $(function() {
+    var Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000
+    });
+   
+  }); 
+  toastr.info('{{ response.message }}');
+{% endif %}
+{% if response.status == -1 %}
+   $(function() {
+    var Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000
+    });
+   
+  }); 
+  toastr.error('{{ response.message }}');
+{% endif %}
+</script>
+{% endblock %}
